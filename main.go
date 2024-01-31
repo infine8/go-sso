@@ -1,51 +1,30 @@
 package main
 
 import (
-	"log/slog"
 	"os"
+	"os/signal"
+	"sso/internal/app"
 	"sso/internal/config"
-	"sso/lib/logger/handlers/slogpretty"
+	logger "sso/lib/logger/setup"
+	"syscall"
 )
 
-
-const (
-	envLocal = "local"
-	envDev   = "dev"
-	envProd  = "prod"
-)
 
 func main(){
 	cfg := config.MustLoad()
 	
-	log := setupLogger(cfg.Env)
+	log := logger.SetupLogger(cfg.Env)
 
-	log.Info("%#v", cfg)
-	
-}
+	app := app.New(log, cfg.StoragePath, cfg.GRPC.Port, cfg.TokenTTL)
 
-func setupLogger(env string) *slog.Logger {
-	var log *slog.Logger
+	go func ()  {
+		app.GRPCServer.MustRun()
+	}()
 
-	switch env {
-	case envLocal:
-		log = setupPrettySlog()
-	case envDev:
-		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
-	case envProd:
-		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
-	}
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
 
-	return log
-}
+	<-stop
 
-func setupPrettySlog() *slog.Logger {
-	opts := slogpretty.PrettyHandlerOptions{
-		SlogOpts: &slog.HandlerOptions{
-			Level: slog.LevelDebug,
-		},
-	}
-
-	handler := opts.NewPrettyHandler(os.Stdout)
-
-	return slog.New(handler)
+	app.Stop()
 }

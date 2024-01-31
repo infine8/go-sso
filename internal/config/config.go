@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"time"
@@ -16,7 +17,7 @@ type Config struct {
     GRPC           GRPCConfig `yaml:"grpc"`  
     MigrationsPath string  
     TokenTTL       time.Duration `yaml:"token_ttl" env-default:"1h"`  
-}  
+}
 
 type GRPCConfig struct {  
     Port    int           `yaml:"port"`  
@@ -29,6 +30,10 @@ func MustLoad() *Config {
         panic("config path is empty") 
     }  
 
+    return MustLoadPath(configPath)
+}
+
+func MustLoadPath(configPath string) *Config {  
     // check if file exists
     if _, err := os.Stat(configPath); os.IsNotExist(err) {
         panic("config file does not exist: " + configPath)
@@ -46,6 +51,8 @@ func MustLoad() *Config {
 func fetchConfigPath() string {
 	ex, _ := os.Executable()
 	execPath := filepath.Dir(ex)
+
+    fmt.Println(execPath)
 
     return filepath.Join(execPath, CONFIG_PATH)
 }

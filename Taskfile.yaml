@@ -1,0 +1,36 @@
+version: "3"  
+
+tasks:  
+  default:
+    cmds:
+      - task: tidy
+  migrate:
+    aliases:
+      - mig
+    desc: "Generate migrations"  
+    cmds:
+      - go run ./cmd/migrator --storage-path=./storage/sso.db --migrations-path=./migrations
+  migrate-tests:
+    aliases:
+      - mig-t
+    desc: "Generate migrations"  
+    cmds:
+      - go run ./cmd/migrator --storage-path=./storage/sso.db --migrations-path=./tests/migrations --migrations-table=migrations_test
+  tidy:
+    aliases:
+      - "t"
+    desc: "go mod tidy"
+    cmds:
+      - go mod tidy
+  run-test:
+    aliases:
+      - "rt"
+    desc: "run tests"
+    cmds:
+      - go test ./tests -count=1 -v
+  build:
+    aliases:
+      - "b"
+    desc: "build"
+    cmds:
+      - go build -o sso-app
