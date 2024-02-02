@@ -32,10 +32,16 @@ type Auth interface {
         email string,
         password string,
     ) (userID int64, err error)
+
+    IsAdmin(
+        ctx context.Context,
+        userId int64,
+    ) (isAdmin bool, err error)
+
 }
 
 func Register(gRPCServer *grpc.Server, auth Auth) {  
-    ssov1.RegisterAuthServer(gRPCServer, &serverAPI{auth: auth})  
+    ssov1.RegisterAuthServer(gRPCServer, &serverAPI { auth: auth })  
 }
 
 func (s *serverAPI) Login(
@@ -88,4 +94,17 @@ func (s *serverAPI) Register(
     }
 
     return &ssov1.RegisterResponse{UserId: uid}, nil   
+}
+
+func (s *serverAPI) IsAdmin(ctx context.Context, in *ssov1.IsAdminRequest) (*ssov1.IsAdminResponse, error) {
+    if in.UserId == 0 {
+        return &ssov1.IsAdminResponse{}, status.Error(codes.InvalidArgument, "user is required")
+    }
+
+    isAdmin, err := s.auth.IsAdmin(ctx, in.UserId)
+    if err != nil {
+        return &ssov1.IsAdminResponse{}, status.Error(codes.Internal, "failed to fetch role")
+    }
+
+    return &ssov1.IsAdminResponse{ IsAdmin: isAdmin }, nil
 }

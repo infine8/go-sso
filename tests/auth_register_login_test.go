@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"fmt"
 	"sso/tests/suite"
 	"testing"
 	"time"
@@ -23,7 +24,7 @@ func TestRegisterLogin_Login_HappyPath(t *testing.T) {
 	ctx, st := suite.New(t)
 
     email := gofakeit.Email()
-    pass := gofakeit.Password(true, true, true, true, false, passLen)
+    pass := randomFakePassword()
 
     // Сначала зарегистрируем нового пользователя, которого будем логинить
     respReg, err := st.AuthClient.Register(ctx, &ssov1.RegisterRequest{
@@ -45,6 +46,7 @@ func TestRegisterLogin_Login_HappyPath(t *testing.T) {
 
 	// Получаем токен из ответа
     token := respLogin.GetToken()
+    fmt.Println("token", token)
     require.NotEmpty(t, token) // Проверяем, что он не пустой
 
     // Отмечаем время, в которое бы выполнен логин.
@@ -77,5 +79,5 @@ func TestRegisterLogin_Login_HappyPath(t *testing.T) {
 }
 
 func randomFakePassword() string {
-    return gofakeit.Password(true, true, true, true, false, 5)
+    return gofakeit.Password(true, true, true, true, false, passLen)
 }

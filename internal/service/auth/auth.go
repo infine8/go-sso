@@ -27,7 +27,8 @@ type UserSaver interface {
 }
 
 type UserProvider interface {  
-    User(ctx context.Context, email string) (models.User, error)  
+    User(ctx context.Context, email string) (models.User, error)
+    IsUserInRole(ctx context.Context, userId int64, role string) (bool, error)
 }
 
 type AppProvider interface {  
@@ -131,4 +132,20 @@ func (a *Auth) Login(
     }
 
 	return token, nil
+}
+
+func (a *Auth) IsAdmin(ctx context.Context, userId int64) (isAdmin bool, err error) {
+    const op = "Auth.IsAdmin"
+
+    log := a.log.With(
+        slog.String("op", op),
+        slog.String("userId", string(userId)),
+    )
+
+    isAdmin, err = a.usrProvider.IsUserInRole(ctx, userId, "admin")
+    if err != nil {
+        log.Error("failed to fetch admin role", sl.Err(err))
+    }
+
+    return isAdmin, nil
 }

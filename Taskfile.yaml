@@ -33,4 +33,4 @@ tasks:
       - "b"
     desc: "build"
     cmds:
-      - go build -o sso-app
+      - go build -o sso-app ./cmd/sso

@@ -1,9 +1,9 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
@@ -45,14 +45,16 @@ func MustLoadPath(configPath string) *Config {
         panic("config path is empty: " + err.Error())
     }
 
+    cfg.StoragePath = filepath.Join(rootPath(), cfg.StoragePath)
+
     return &cfg
 }
 
 func fetchConfigPath() string {
-	ex, _ := os.Executable()
-	execPath := filepath.Dir(ex)
+    return filepath.Join(rootPath(), CONFIG_PATH)
+}
 
-    fmt.Println(execPath)
-
-    return filepath.Join(execPath, CONFIG_PATH)
+func rootPath() string {
+    _, b, _, _ := runtime.Caller(0)
+    return filepath.Join(filepath.Dir(b), "../..")
 }
